@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VouchPay · AI does the work. You vouch for the money.</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="logo" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div>
+      <h1>VouchPay</h1>
+      <p class="tag">AI does the work. You vouch for the money.</p>
+    </div>
+  </div>
+  <div class="controls">
+    <span id="mode" class="badge"></span>
+    <span id="day" class="day"></span>
+    <button id="tick" class="btn primary">Run next day</button>
+    <button id="auto" class="btn">Autopilot: off</button>
+    <button id="reset" class="btn ghost">Reset</button>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button class="tab active" data-view="brand" role="tab">Brand console</button>
+  <button class="tab" data-view="creator" role="tab">Creator view</button>
+</nav>
+
+<main id="brand" class="view">
+  <section class="kpis" id="kpis"></section>
+  <div class="grid">
+    <div class="col">
+      <section class="card">
+        <div class="card-h"><h2>Approval queue</h2><span class="hint">Payouts and big budget moves wait for a human</span></div>
+        <div id="queue"></div>
+      </section>
+      <section class="card">
+        <div class="card-h"><h2>Campaigns</h2><span class="hint">Agent rebalances daily by ROAS</span></div>
+        <div id="campaigns"></div>
+      </section>
+      <section class="card">
+        <div class="card-h"><h2>Guardrails</h2><span class="hint">The agent can't act outside these</span></div>
+        <form id="policy" class="policy"></form>
+      </section>
+      <section class="card">
+        <div class="card-h"><h2>Demo controls</h2><span class="hint">Push views to trigger bonuses or the fraud check</span></div>
+        <div id="demo"></div>
+      </section>
+    </div>
+    <div class="col">
+      <section class="card log-card">
+        <div class="card-h"><h2>Audit log</h2><span class="hint">Every action, why it happened and who approved it</span></div>
+        <div class="filters" id="filters"></div>
+        <ol id="audit" class="audit"></ol>
+      </section>
+    </div>
+  </div>
+</main>
+
+<main id="creator" class="view hidden">
+  <div class="creator-pick" id="creatorPick"></div>
+  <section id="creatorCard"></section>
+</main>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
