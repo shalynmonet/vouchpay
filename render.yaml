@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: vouchpay
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: AIRWALLEX_CLIENT_ID
+        sync: false
+      - key: AIRWALLEX_API_KEY
+        sync: false
+      - key: AIRWALLEX_BENEFICIARIES
+        sync: false
+      - key: AIRWALLEX_BASE_URL
+        value: https://api-demo.airwallex.com
+      - key: PAYOUT_CURRENCY
+        value: USD

@@ -77,4 +77,4 @@ async function payCreator(item, creator) {
   return { transferId: transfer.id || transfer.short_reference_id, status: transfer.status || 'CREATED', mode: 'Airwallex sandbox' };
 }
 
-module.exports = { live, base: BASE, getBalances, payCreator, beneficiaryCount: Object.keys(BENEFICIARIES).length };
+module.exports = { call, live, base: BASE, getBalances, payCreator, beneficiaryCount: Object.keys(BENEFICIARIES).length };

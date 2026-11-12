@@ -47,16 +47,28 @@ Open http://localhost:3000.
 
 Without keys, payouts are simulated so the demo always runs. To send real sandbox transfers:
 
-```powershell
-Copy-Item .env.example .env
-notepad .env
-```
-
-1. Paste your sandbox `AIRWALLEX_CLIENT_ID` and `AIRWALLEX_API_KEY` (Airwallex web app > Developer > API keys).
-2. Create a beneficiary for each demo creator in the sandbox and paste the IDs, for example `AIRWALLEX_BENEFICIARIES=cr1:abc123,cr2:def456,cr3:ghi789`.
-3. Restart with `npm start`. The header badge switches to **Airwallex sandbox** and approved bonuses call `POST /api/v1/transfers/create`. The returned transfer ID is shown in the audit log.
+1. Log in to the sandbox web app at https://www.sandbox.airwallex.com/app/ and go to **Settings > Developer > API keys**. Copy the **Client ID**, then generate an **API key** and copy it right away (it is only shown once).
+2. Create your `.env` file:
+   ```powershell
+   Copy-Item .env.example .env
+   notepad .env
+   ```
+   Paste the values after `AIRWALLEX_CLIENT_ID=` and `AIRWALLEX_API_KEY=` with no quotes or spaces, then save.
+3. Check the connection and list your beneficiaries:
+   ```powershell
+   npm run check
+   ```
+4. In the sandbox web app, create three payees (one per demo creator), run `npm run check` again and copy their IDs into `.env`:
+   ```
+   AIRWALLEX_BENEFICIARIES=cr1:<Maya's id>,cr2:<Jordan's id>,cr3:<Ava's id>
+   ```
+5. Restart with `npm start`. The header badge switches to **Airwallex sandbox**, approved bonuses call `POST /api/v1/transfers/create` and the returned transfer ID shows in the audit log.
 
 Any creator without a beneficiary ID falls back to a simulated payout and is labeled that way in the log.
+
+## Deploy (Render)
+
+`render.yaml` is included. In Render choose **New > Blueprint**, pick this repo and enter the Airwallex values when asked. Then add a custom domain under the service's **Settings > Custom Domains** and point a `CNAME` record at the service's `onrender.com` address.
 
 ## Demo script (under 5 minutes)
 
@@ -73,6 +85,9 @@ Any creator without a beneficiary ID falls back to a simulated payout and is lab
 server.js           zero-dependency Node server + JSON API
 src/engine.js       agent, guardrails, audit log (shared by server and browser)
 src/airwallex.js    Airwallex auth + transfers, simulated fallback
+src/env.js          .env loader
+scripts/check-airwallex.js  npm run check: verifies keys, lists beneficiaries
+render.yaml         one-click Render deploy
 public/             dashboard UI
 scripts/test.js     guardrail tests
 scripts/build-demo.js  builds dist/demo.html, a single-file browser demo
