@@ -24,7 +24,9 @@ button { font: inherit; cursor: pointer; }
 
 /* header */
 .top { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; padding: 14px 28px; background: #050505; border-bottom: 2px solid #b8913a; }
-.brand { display: flex; flex-direction: column; gap: 2px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-text { display: flex; flex-direction: column; gap: 2px; }
+.brand-mark { width: 72px; height: 72px; border-radius: 50%; display: block; }
 .brand h1 { margin: 0; line-height: 0; }
 .banner { height: 52px; width: auto; display: block; }
 .tag { margin: 0; color: #d9bf7a; font-size: 12.5px; letter-spacing: .02em; }
@@ -185,6 +187,7 @@ button { font: inherit; cursor: pointer; }
 @media (max-width: 560px) {
   .top, .view { padding-left: 14px; padding-right: 14px; }
   .banner { height: 40px; }
+  .brand-mark { width: 54px; height: 54px; }
   .tabs { padding: 0 14px; }
   .camp { grid-template-columns: 1fr 70px; }
   .camp .bar-cell, .camp .spark { display: none; }
