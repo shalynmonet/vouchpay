@@ -15,7 +15,7 @@ const DATA = path.join(__dirname, 'data', 'state.json');
 
 let state = load();
 function load() {
-  try { return JSON.parse(fs.readFileSync(DATA, 'utf8')); } catch { return Engine.createInitialState(); }
+  try { return Engine.migrate(JSON.parse(fs.readFileSync(DATA, 'utf8'))); } catch { return Engine.createInitialState(); }
 }
 function save() {
   fs.mkdirSync(path.dirname(DATA), { recursive: true });
@@ -45,6 +45,15 @@ async function runReviews() {
           title: 'SERV review: ' + label + ' \u00b7 ' + item.title,
           detail: (r.summary ? r.summary + ' ' : '') + r.reasons.map((x) => x.replace(/\.?\s*$/, '.')).join(' ') + ' (' + Math.round(r.confidence * 100) + '% confidence, ' + r.model + ', ' + (r.ms / 1000).toFixed(1) + 's)'
         });
+        // SERV-earned autonomy: small, clean bonuses pay out without waiting for a human
+        const p = s.policy;
+        if (item.type === 'payout' && item.status === 'pending' && r.verdict === 'approve' &&
+            p.autoPayMax > 0 && item.amount <= p.autoPayMax && r.confidence >= p.autoPayMinConfidence) {
+          Engine.addAudit(s, { actor: 'agent', type: 'auto', ref: item.id, amount: item.amount, title: 'Auto-paying ' + item.creatorName + ' $' + item.amount,
+            detail: 'SERV approved at ' + Math.round(r.confidence * 100) + '% confidence (needs ' + Math.round(p.autoPayMinConfidence * 100) + '%) and the bonus is within the $' + p.autoPayMax + ' auto-pay limit. Larger or flagged payouts still wait for a human.' });
+          item.autoPaid = true;
+          await Engine.approve(s, item.id, airwallex.payCreator, 'Auto-paid by the agent after SERV review', 'agent');
+        }
       } catch (err) {
         item.review = { status: 'error', message: err.message };
         Engine.addAudit(s, { actor: 'system', type: 'error', ref: item.id, title: 'SERV review unavailable', detail: err.message + '. The guardrails and human approval still apply.' });

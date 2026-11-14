@@ -13,7 +13,7 @@
   }
   function saveLocal() { try { localStorage.setItem(STORE, JSON.stringify(data.state)); } catch (e) { /* storage unavailable, keep in memory */ } }
   function loadLocal() {
-    try { var raw = localStorage.getItem(STORE); if (raw) return JSON.parse(raw); } catch (e) { /* ignore */ }
+    try { var raw = localStorage.getItem(STORE); if (raw) return E.migrate(JSON.parse(raw)); } catch (e) { /* ignore */ }
     return E.createInitialState();
   }
   function simulatedPayout() {
@@ -164,7 +164,9 @@
     ['maxShiftPct', 'Max move per action (%)', 100, 5],
     ['minCampaignBudget', 'Campaign floor ($)', 1, 50],
     ['spikeMultiplier', 'Fraud hold at view spike (x avg)', 1, 1],
-    ['boostRoas', 'Ask for more budget at ROAS', 1, 0.1]
+    ['boostRoas', 'Ask for more budget at ROAS', 1, 0.1],
+    ['autoPayMax', 'SERV auto-pay up to ($, 0 = off)', 1, 50],
+    ['autoPayMinConfidence', 'SERV auto-pay confidence (%)', 100, 1]
   ];
   function renderPolicy(s) {
     var form = $('policy');

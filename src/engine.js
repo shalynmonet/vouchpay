@@ -46,7 +46,9 @@
         payoutsRequireApproval: true,
         spikeMultiplier: 5,         // daily view gain > 5x the creator's average = fraud hold
         minRoasGap: 0.6,            // only rebalance when the gap is meaningful
-        boostRoas: 3.0              // agent asks for new money when a campaign is this strong
+        boostRoas: 3.0,             // agent asks for new money when a campaign is this strong
+        autoPayMax: 250,            // SERV may auto-release clean bonuses up to this amount (0 = off)
+        autoPayMinConfidence: 0.9   // ...only when SERV recommends approve at this confidence or higher
       },
       treasury: { label: 'Creator payout wallet', currency: 'USD', balance: 15000 },
       campaigns: [
@@ -207,7 +209,8 @@
   }
 
   // payoutFn(item, creator) -> Promise<{ transferId, status, mode }>
-  async function approve(s, id, payoutFn, who) {
+  async function approve(s, id, payoutFn, who, actor) {
+    actor = actor || 'human';
     var item = find(s.pending, id);
     if (!item || (item.status !== 'pending' && item.status !== 'held')) throw new Error('Nothing to approve');
     who = who || 'You';
@@ -227,7 +230,7 @@
         item.mode = res.mode;
         cr.paidTiers.push(item.tierViews);
         s.treasury.balance -= item.amount;
-        audit(s, { actor: 'human', type: 'paid', title: item.title.replace(/^Hold/, 'Released') , detail: (wasHeld ? who + ' reviewed the spike and released it. ' : 'Approved by ' + who + '. ') + 'Airwallex transfer ' + res.transferId + ' (' + res.status + ', ' + res.mode + ')', amount: item.amount, ref: item.id, txId: res.transferId });
+        audit(s, { actor: actor, type: 'paid', title: item.title.replace(/^Hold/, 'Released'), detail: (wasHeld ? who + ' reviewed the spike and released it. ' : (actor === 'human' ? 'Approved by ' : '') + who + '. ') + 'Airwallex transfer ' + res.transferId + ' (' + res.status + ', ' + res.mode + ')', amount: item.amount, ref: item.id, txId: res.transferId });
       } catch (err) {
         item.status = wasHeld ? 'held' : 'pending';
         audit(s, { actor: 'system', type: 'error', title: 'Payout failed', detail: String(err && err.message || err), amount: item.amount, ref: item.id });
@@ -284,6 +287,12 @@
     return s;
   }
 
+  function migrate(s) {
+    var d = createInitialState().policy;
+    s.policy = Object.assign({}, d, s.policy || {});
+    return s;
+  }
+
   function summary(s) {
     var spend = 0, rev = 0;
     s.campaigns.forEach(function (c) { spend += c.totalSpend; rev += c.totalRevenue; });
@@ -307,6 +316,7 @@
   return {
     createInitialState: createInitialState,
     addAudit: audit,
+    migrate: migrate,
     tick: tick,
     runAgent: runAgent,
     addViews: addViews,

@@ -21,7 +21,8 @@ Built for the Airwallex Agentic Banking Hackathon 2026.
 Every money decision the agent queues (a creator payout, a fraud hold or a budget move) gets a second opinion from [SERV Reasoning](https://docs.openserv.ai/serv-reasoning) by OpenServ before a human signs off. SERV gets the facts of the case and the brand's guardrails and returns a structured verdict: **approve**, **hold** or **reject**, with a confidence score, reasons and risk flags.
 
 - The verdict shows on the approval card and is written to the audit log with the model and response time, so every decision has a traceable reasoning trail.
-- SERV is advisory. The guardrails still enforce hard limits and a human still approves every payout.
+- **SERV-earned autonomy:** a clean bonus of $250 or less pays out automatically when SERV recommends approve with 90% or higher confidence. Bigger, flagged or lower-confidence payouts wait for a human. Both limits are editable live in the Guardrails panel (set the amount to 0 to turn it off).
+- The guardrails still enforce hard limits on top of SERV, so a wrong verdict can't break the spend cap or release a fraud hold.
 - The system prompt is versioned and follows OpenServ's day-one guidance: objective, decision priorities, constraints and what to do when information is missing (hold and say what's missing).
 - Case data such as creator names is treated as data, never as instructions, to resist prompt injection.
 - If SERV is slow or unavailable, the review is marked unavailable and the app keeps working.
@@ -35,7 +36,7 @@ Code: `src/serv.js`. It calls the OpenAI-compatible endpoint `https://inference-
 | Daily spend cap | Total ad budget can never exceed the cap. Requests over it are blocked and logged |
 | Max move per action | The agent can move at most 20% of a campaign's budget at once. Larger intents are clamped |
 | Campaign floor | No campaign is starved below a minimum budget |
-| Human approval | Budget moves at or above the threshold, and every payout, wait in an approval queue |
+| Human approval | Budget moves at or above the threshold, payouts over the auto-pay limit and anything SERV or the fraud check flags wait in an approval queue |
 | Fraud check | A one-day view gain over 5x the creator's average holds the bonus for review. Spikes are kept out of the baseline |
 | Idempotent payouts | Each Airwallex transfer has a unique `request_id`, so a retried approval can't double-pay |
 | Audit log | Every action records who did it (agent, guardrail, human), why, the amount and the Airwallex transfer ID |
@@ -87,7 +88,7 @@ Any creator without a beneficiary ID falls back to a simulated payout and is lab
 
 1. **Run next day** a few times. The agent shifts budget from Retargeting to Glow Serum, and the log shows guardrails clamping moves.
 2. Approve the **New budget** request. Approve the next one and watch the spend cap block the third.
-3. Click **+10K organic** on Maya. Her Silver bonus is queued. **Approve & pay** sends the Airwallex transfer.
+3. Click **+10K organic** on Jordan. SERV reviews his $250 Bronze bonus and, at 90% or higher confidence, the agent pays it through Airwallex on its own.
 4. Click **Bot spike** on Jordan. The fraud check holds his bonus instead of paying it, and SERV Reasoning independently recommends a hold with its reasons.
 5. Click **Undo** on a budget move in the audit log.
 6. Switch to **Creator view** to show what creators see: base pay, bonuses earned and how close they are to the next tier.
