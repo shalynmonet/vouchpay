@@ -3,6 +3,17 @@
 require('../src/env');
 const awx = require('../src/airwallex');
 
+// Finds name-like fields anywhere in a payee record, whatever the API version nests them under.
+function collect(obj, out) {
+  out = out || {};
+  if (!obj || typeof obj !== 'object') return out;
+  for (const [k, v] of Object.entries(obj)) {
+    if (v && typeof v === 'object') collect(v, out);
+    else if (v != null && v !== '' && out[k] == null) out[k] = v;
+  }
+  return out;
+}
+
 (async () => {
   if (!awx.live) {
     console.log('\n  No keys found. Add AIRWALLEX_CLIENT_ID and AIRWALLEX_API_KEY to your .env file first.\n');
@@ -14,14 +25,23 @@ const awx = require('../src/airwallex');
   (Array.isArray(balances) ? balances : balances.items || []).forEach((b) => {
     console.log('    ' + b.currency + '  ' + (b.available_amount ?? b.total_amount ?? 0));
   });
-  const list = await awx.call('/api/v1/beneficiaries?page_size=50');
-  const items = list.items || [];
-  console.log('\n  Beneficiaries (' + items.length + '):');
+  const list = await awx.call('/api/v1/beneficiaries?page_size=100');
+  const items = (list.items || []).slice().sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
+  if (process.argv.includes('--raw')) {
+    console.log(JSON.stringify(items, null, 2));
+    return;
+  }
+  console.log('\n  Beneficiaries (' + items.length + ', newest first):');
   if (!items.length) console.log('    none yet. Create one in the sandbox web app, then run this again.');
-  items.forEach((b) => {
-    const bd = (b.beneficiary && (b.beneficiary.bank_details || b.beneficiary.digital_wallet)) || {};
-    const name = b.nickname || bd.account_name || (b.beneficiary && b.beneficiary.company_name) || '(no name)';
-    console.log('    ' + (b.id || b.beneficiary_id) + '   ' + name);
+  items.forEach((b, i) => {
+    const f = collect(b);
+    const person = [f.first_name, f.last_name].filter(Boolean).join(' ');
+    const name = f.nickname || f.account_name || person || f.company_name || f.name || '(no name found, run: npm run check -- --raw)';
+    const acct = f.account_number ? '...' + String(f.account_number).slice(-4) : '';
+    console.log('\n    ' + (i + 1) + '. ' + name);
+    console.log('       ID:       ' + (b.beneficiary_id || b.id));
+    console.log('       Details:  ' + [f.account_currency, f.bank_country_code, acct].filter(Boolean).join(' · '));
+    if (b.created_at) console.log('       Created:  ' + String(b.created_at).slice(0, 16).replace('T', ' '));
   });
   console.log('\n  Copy the IDs into AIRWALLEX_BENEFICIARIES, for example:');
   console.log('    AIRWALLEX_BENEFICIARIES=cr1:<id>,cr2:<id>,cr3:<id>\n');
