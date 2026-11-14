@@ -14,7 +14,20 @@ function collect(obj, out) {
   return out;
 }
 
+async function checkServ() {
+  const serv = require('../src/serv');
+  if (!serv.enabled) { console.log('\n  SERV Reasoning: off (no SERV_API_KEY)'); return; }
+  console.log('\n  Checking SERV Reasoning (' + serv.model + ') ...');
+  try {
+    const r = await serv.review(require('../src/engine').createInitialState(), { type: 'payout', title: 'Test payout', amount: 250, status: 'pending', reasoning: 'Connection test', creatorId: 'cr2', tierName: 'Bronze', tierViews: 50000 });
+    console.log('  SERV OK: ' + r.verdict + ' (' + Math.round(r.confidence * 100) + '%, ' + (r.ms / 1000).toFixed(1) + 's)');
+  } catch (e) {
+    console.log('  SERV failed: ' + e.message);
+  }
+}
+
 (async () => {
+  await checkServ();
   if (!awx.live) {
     console.log('\n  No keys found. Add AIRWALLEX_CLIENT_ID and AIRWALLEX_API_KEY to your .env file first.\n');
     process.exit(1);

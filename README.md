@@ -16,6 +16,18 @@ Built for the Airwallex Agentic Banking Hackathon 2026.
 | Ask for more budget | When a campaign beats the boost ROAS, it requests new daily budget |
 | Creator bonuses | When a creator crosses a tier (50K, 100K, 250K views), it queues an Airwallex payout |
 
+## SERV Reasoning review
+
+Every money decision the agent queues (a creator payout, a fraud hold or a budget move) gets a second opinion from [SERV Reasoning](https://docs.openserv.ai/serv-reasoning) by OpenServ before a human signs off. SERV gets the facts of the case and the brand's guardrails and returns a structured verdict: **approve**, **hold** or **reject**, with a confidence score, reasons and risk flags.
+
+- The verdict shows on the approval card and is written to the audit log with the model and response time, so every decision has a traceable reasoning trail.
+- SERV is advisory. The guardrails still enforce hard limits and a human still approves every payout.
+- The system prompt is versioned and follows OpenServ's day-one guidance: objective, decision priorities, constraints and what to do when information is missing (hold and say what's missing).
+- Case data such as creator names is treated as data, never as instructions, to resist prompt injection.
+- If SERV is slow or unavailable, the review is marked unavailable and the app keeps working.
+
+Code: `src/serv.js`. It calls the OpenAI-compatible endpoint `https://inference-api.openserv.ai/v1/chat/completions`.
+
 ## Guardrails
 
 | Guardrail | Behavior |
@@ -62,7 +74,8 @@ Without keys, payouts are simulated so the demo always runs. To send real sandbo
    ```powershell
    npm run setup-payees
    ```
-5. Restart with `npm start`. The header badge switches to **Airwallex sandbox**, approved bonuses call `POST /api/v1/transfers/create` and the returned transfer ID shows in the audit log.
+5. Optional, for SERV Reasoning: get an API key at https://console.openserv.ai and add it to `.env` as `SERV_API_KEY=`. On restart the header shows **SERV Reasoning on**.
+6. Restart with `npm start`. The header badge switches to **Airwallex sandbox**, approved bonuses call `POST /api/v1/transfers/create` and the returned transfer ID shows in the audit log.
 
 Any creator without a beneficiary ID falls back to a simulated payout and is labeled that way in the log.
 
@@ -75,7 +88,7 @@ Any creator without a beneficiary ID falls back to a simulated payout and is lab
 1. **Run next day** a few times. The agent shifts budget from Retargeting to Glow Serum, and the log shows guardrails clamping moves.
 2. Approve the **New budget** request. Approve the next one and watch the spend cap block the third.
 3. Click **+10K organic** on Maya. Her Silver bonus is queued. **Approve & pay** sends the Airwallex transfer.
-4. Click **Bot spike** on Jordan. The fraud check holds his bonus instead of paying it.
+4. Click **Bot spike** on Jordan. The fraud check holds his bonus instead of paying it, and SERV Reasoning independently recommends a hold with its reasons.
 5. Click **Undo** on a budget move in the audit log.
 6. Switch to **Creator view** to show what creators see: base pay, bonuses earned and how close they are to the next tier.
 
@@ -85,6 +98,7 @@ Any creator without a beneficiary ID falls back to a simulated payout and is lab
 server.js           zero-dependency Node server + JSON API
 src/engine.js       agent, guardrails, audit log (shared by server and browser)
 src/airwallex.js    Airwallex auth + transfers, simulated fallback
+src/serv.js         SERV Reasoning reviewer (OpenServ)
 src/env.js          .env loader
 scripts/check-airwallex.js  npm run check: verifies keys, lists beneficiaries
 render.yaml         one-click Render deploy

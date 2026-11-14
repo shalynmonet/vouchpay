@@ -87,6 +87,23 @@ button { font: inherit; cursor: pointer; }
 .pill.shift, .pill.boost { background: #eef2f6; color: #3b4a5c; }
 .pill.held { background: #fff; color: var(--bad); border: 1px solid #f3b8b3; }
 
+/* SERV review */
+.badge.serv { background: #e9f3ff; color: #1d5fbf; }
+.serv-box { border: 1px solid #cfe0f7; background: #f4f8fe; border-radius: 10px; padding: 10px 12px; margin: 0 0 10px; font-size: 12.5px; }
+.serv-box.running { color: #1d5fbf; }
+.serv-box.v-approve { border-color: #bfe5d3; background: #f1faf6; }
+.serv-box.v-hold { border-color: #f3d7a8; background: #fef8ee; }
+.serv-box.v-reject { border-color: #f3b8b3; background: #fdf1f0; }
+.serv-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.serv-tag { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #1d5fbf; margin-right: 4px; }
+.serv-conf { color: var(--muted); margin-left: auto; }
+.serv-sum { margin-top: 6px; }
+.serv-box ul { margin: 6px 0 0; padding-left: 18px; color: #3b3d44; }
+.serv-flags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.serv-flags span { background: #fff; border: 1px solid var(--line); border-radius: 99px; padding: 1px 8px; font-size: 11px; }
+.serv-meta { color: var(--muted); font-size: 11px; margin-top: 6px; font-family: var(--mono); }
+.actor-serv { background: #e9f3ff; color: #1d5fbf; }
+
 /* campaigns */
 .camp { display: grid; grid-template-columns: minmax(0, 1.4fr) 1fr 72px 90px; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
 .camp:first-child { border-top: 0; }

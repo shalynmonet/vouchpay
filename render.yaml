@@ -16,3 +16,7 @@ services:
         value: https://api-demo.airwallex.com
       - key: PAYOUT_CURRENCY
         value: USD
+      - key: SERV_API_KEY
+        sync: false
+      - key: SERV_MODEL
+        value: gpt-5.4-mini

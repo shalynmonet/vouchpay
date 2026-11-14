@@ -61,7 +61,8 @@
   function setBusy(on) { document.querySelectorAll('button[data-act]').forEach(function (b) { b.disabled = on; }); }
 
   async function poll() {
-    if (!remote || busy || !data || !data.autopilot) return;
+    if (!remote || busy || !data) return;
+    if (document.activeElement && document.activeElement.closest && document.activeElement.closest('#policy')) return;
     try { var r = await fetch('api/state'); data = await r.json(); render(); } catch (e) { /* ignore */ }
   }
 
@@ -76,6 +77,9 @@
     $('mode').textContent = data.mode;
     $('mode').className = 'badge' + (live ? ' live' : '');
     $('day').textContent = 'Day ' + s.day;
+    var sv = $('serv');
+    if (data.serv && data.serv.enabled) { sv.textContent = 'SERV Reasoning on'; sv.className = 'badge serv'; }
+    else sv.className = 'hidden';
     var auto = $('auto');
     auto.textContent = 'Autopilot: ' + (data.autopilot ? 'on' : 'off');
     auto.classList.toggle('on', !!data.autopilot);
@@ -113,13 +117,26 @@
       return '<div class="req' + (held ? ' held' : '') + '">' +
         '<div class="req-top"><div>' + pill + '<div class="req-title">' + esc(p.title) + '</div></div><div class="req-amt num">' + money(p.amount) + '</div></div>' +
         (held ? '<div class="req-flag">' + esc(p.flag) + '</div>' : '') +
-        '<div class="req-why">' + esc(p.reasoning) + '</div>' +
+        '<div class="req-why">' + esc(p.reasoning) + '</div>' + reviewBlock(p) +
         '<div class="req-actions">' +
         (p.status === 'processing' ? '<span class="hint">Sending to Airwallex...</span>' :
           '<button class="btn sm ' + (held ? '' : 'good') + '" data-act="approve" data-id="' + p.id + '">' + primary + '</button>' +
           '<button class="btn sm bad" data-act="reject" data-id="' + p.id + '">' + (held ? 'Decline' : 'Reject') + '</button>') +
         '</div></div>';
     }).join('');
+  }
+
+  function reviewBlock(p) {
+    var r = p.review;
+    if (!r) return '';
+    if (r.status === 'running') return '<div class="serv-box running"><span class="serv-tag">SERV Reasoning</span> Reviewing this decision\u2026</div>';
+    if (r.status === 'error') return '<div class="serv-box"><span class="serv-tag">SERV Reasoning</span> Review unavailable. Guardrails still apply.</div>';
+    var label = { approve: 'Recommends approve', hold: 'Recommends hold', reject: 'Recommends reject' }[r.verdict];
+    return '<div class="serv-box v-' + r.verdict + '"><div class="serv-head"><span class="serv-tag">SERV Reasoning</span><strong>' + label + '</strong><span class="serv-conf">' + Math.round(r.confidence * 100) + '% confidence</span></div>' +
+      (r.summary ? '<div class="serv-sum">' + esc(r.summary) + '</div>' : '') +
+      (r.reasons.length ? '<ul>' + r.reasons.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') +
+      (r.riskFlags && r.riskFlags.length ? '<div class="serv-flags">' + r.riskFlags.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('') + '</div>' : '') +
+      '<div class="serv-meta">' + esc(r.model) + ' \u00b7 ' + (r.ms / 1000).toFixed(1) + 's</div></div>';
   }
 
   function spark(hist) {
@@ -166,7 +183,7 @@
     }).join('');
   }
 
-  var FILTERS = [['all', 'All'], ['agent', 'Agent'], ['policy', 'Guardrails'], ['human', 'Human'], ['paid', 'Payouts']];
+  var FILTERS = [['all', 'All'], ['agent', 'Agent'], ['serv', 'SERV'], ['policy', 'Guardrails'], ['human', 'Human'], ['paid', 'Payouts']];
   function renderAudit(s) {
     $('filters').innerHTML = FILTERS.map(function (f) { return '<button class="chip' + (auditFilter === f[0] ? ' active' : '') + '" data-filter="' + f[0] + '">' + f[1] + '</button>'; }).join('');
     var rows = s.audit.filter(function (a) {
@@ -183,7 +200,7 @@
       if (a.txId) extra += '<span class="tx">' + esc(a.txId) + '</span>';
       if (chg && !chg.rolledBack) extra += '<button class="btn sm" data-act="rollback" data-id="' + chg.id + '">Undo</button>';
       if (chg && chg.rolledBack) extra += '<span>Rolled back</span>';
-      var label = a.actor === 'policy' ? 'Guard' : a.actor;
+      var label = a.actor === 'policy' ? 'Guard' : a.actor === 'serv' ? 'SERV' : a.actor;
       return '<li class="entry"><span class="actor actor-' + a.actor + '">' + label + '</span><div>' +
         '<div class="entry-title' + (chg && chg.rolledBack ? ' undone' : '') + '">' + esc(a.title) + '</div>' +
         (a.detail ? '<div class="entry-detail">' + esc(a.detail) + '</div>' : '') +
@@ -272,7 +289,7 @@
       data = await r.json();
       if (!data || !data.state) throw new Error('no server');
       remote = true;
-      setInterval(poll, 2000);
+      setInterval(poll, 2500);
     } catch (e) {
       remote = false;
       data = localView(loadLocal());

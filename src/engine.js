@@ -306,6 +306,7 @@
 
   return {
     createInitialState: createInitialState,
+    addAudit: audit,
     tick: tick,
     runAgent: runAgent,
     addViews: addViews,
