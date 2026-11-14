@@ -17,25 +17,26 @@
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 var(--font); -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--bg) url(assets/houndstooth.jpg) center top / 900px auto repeat; color: var(--ink); font: 14px/1.45 var(--font); -webkit-font-smoothing: antialiased; }
 button { font: inherit; cursor: pointer; }
 .hidden { display: none !important; }
 .num { font-variant-numeric: tabular-nums; }
 
 /* header */
-.top { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; padding: 20px 28px 12px; }
-.brand { display: flex; gap: 12px; align-items: center; }
-.brand h1 { margin: 0; font-size: 22px; letter-spacing: -0.02em; }
-.tag { margin: 0; color: var(--muted); font-size: 13px; }
-.logo { width: 36px; height: 36px; border-radius: 10px; background: var(--ink); display: flex; align-items: flex-end; justify-content: center; gap: 3px; padding: 8px; }
-.logo span { width: 5px; border-radius: 2px; background: #fff; }
-.logo span:nth-child(1) { height: 8px; opacity: .55; }
-.logo span:nth-child(2) { height: 13px; opacity: .8; }
-.logo span:nth-child(3) { height: 19px; background: #a99cff; }
+.top { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; padding: 14px 28px; background: #050505; border-bottom: 2px solid #b8913a; }
+.brand { display: flex; flex-direction: column; gap: 2px; }
+.brand h1 { margin: 0; line-height: 0; }
+.banner { height: 52px; width: auto; display: block; }
+.tag { margin: 0; color: #d9bf7a; font-size: 12.5px; letter-spacing: .02em; }
 .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .badge { font-size: 12px; padding: 4px 10px; border-radius: 99px; background: var(--warn-soft); color: var(--warn); font-weight: 600; }
 .badge.live { background: var(--good-soft); color: var(--good); }
-.day { font-weight: 700; padding: 0 6px; }
+.day { font-weight: 700; padding: 0 6px; color: #f3e6c4; }
+.top .btn { background: #141414; color: #f3e6c4; border-color: #3a3326; }
+.top .btn:hover { border-color: #b8913a; }
+.top .btn.primary { background: linear-gradient(180deg, #e3c472, #b8913a); color: #16130c; border-color: #b8913a; }
+.top .btn.on { background: #1f5c3a; border-color: #2f7d52; color: #fff; }
+.top .btn.ghost { background: transparent; }
 .btn { border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 8px 14px; border-radius: 10px; font-weight: 600; }
 .btn:hover { border-color: #c9c6bb; }
 .btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
@@ -48,7 +49,7 @@ button { font: inherit; cursor: pointer; }
 .btn:disabled { opacity: .5; cursor: progress; }
 
 /* tabs */
-.tabs { display: flex; gap: 4px; padding: 0 28px; border-bottom: 1px solid var(--line); }
+.tabs { display: flex; gap: 4px; padding: 0 28px; border-bottom: 1px solid var(--line); background: rgba(250, 248, 243, .94); }
 .tab { border: 0; background: none; padding: 10px 14px; color: var(--muted); font-weight: 600; border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .tab.active { color: var(--ink); border-bottom-color: var(--ink); }
 .view { padding: 20px 28px 40px; max-width: 1320px; margin: 0 auto; }
@@ -183,6 +184,7 @@ button { font: inherit; cursor: pointer; }
 }
 @media (max-width: 560px) {
   .top, .view { padding-left: 14px; padding-right: 14px; }
+  .banner { height: 40px; }
   .tabs { padding: 0 14px; }
   .camp { grid-template-columns: 1fr 70px; }
   .camp .bar-cell, .camp .spark { display: none; }

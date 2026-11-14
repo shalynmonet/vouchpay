@@ -192,7 +192,7 @@
       var item = Object.assign({ id: nextId(s, 'req'), status: 'pending', title: 'Pay ' + cr.name + ' ' + money(tier.bonus) + ' ' + tier.name + ' bonus' }, base);
       item.reasoning = cr.handle + ' crossed ' + fmtViews(tier.views) + ' views (now ' + fmtViews(cr.views) + '). Organic growth looks normal (+' + fmtViews(cr.lastGain) + ' today vs ' + fmtViews(cr.avgDaily) + '/day avg).';
       s.pending.unshift(item);
-      audit(s, { actor: 'agent', type: 'proposed', title: item.title, detail: 'Payouts always need approval. ' + item.reasoning, amount: tier.bonus, ref: item.id });
+      audit(s, { actor: 'agent', type: 'proposed', title: item.title, detail: 'Queued for review. ' + item.reasoning, amount: tier.bonus, ref: item.id });
     });
   }
 
