@@ -27,7 +27,10 @@ async function call(path, { method = 'GET', body, auth = true } = {}) {
   let data; try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
   if (!res.ok) {
     const msg = data.message || data.code || res.statusText;
-    throw new Error(`Airwallex ${res.status} on ${path}: ${msg}`);
+    const detail = data.errors || data.details || (data.source ? { source: data.source } : null);
+    const err = new Error(`Airwallex ${res.status} on ${path}: ${msg}` + (detail ? '\n    Details: ' + JSON.stringify(detail) : ''));
+    err.data = data;
+    throw err;
   }
   return data;
 }
