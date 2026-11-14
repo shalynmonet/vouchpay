@@ -58,9 +58,9 @@ Without keys, payouts are simulated so the demo always runs. To send real sandbo
    ```powershell
    npm run check
    ```
-4. In the sandbox web app, create three payees (one per demo creator), run `npm run check` again and copy their IDs into `.env`:
-   ```
-   AIRWALLEX_BENEFICIARIES=cr1:<Maya's id>,cr2:<Jordan's id>,cr3:<Ava's id>
+4. Create the three demo creators as sandbox payees. This also writes their IDs into `.env` for you:
+   ```powershell
+   npm run setup-payees
    ```
 5. Restart with `npm start`. The header badge switches to **Airwallex sandbox**, approved bonuses call `POST /api/v1/transfers/create` and the returned transfer ID shows in the audit log.
 
