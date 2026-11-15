@@ -47,16 +47,49 @@ function caseFor(state, item) {
   return base;
 }
 
+// Models name fields differently ("confidence", "confidence_score", "rationale"...), so match loosely.
+function pick(obj, names) {
+  if (!obj || typeof obj !== 'object') return undefined;
+  const keys = Object.keys(obj);
+  for (const n of names) {
+    const k = keys.find((key) => key.toLowerCase().replace(/[^a-z]/g, '') === n);
+    if (k !== undefined && obj[k] !== null && obj[k] !== '' && (typeof obj[k] !== 'object' || Array.isArray(obj[k]))) return obj[k];
+  }
+  for (const k of keys) {
+    if (obj[k] && typeof obj[k] === 'object' && !Array.isArray(obj[k])) {
+      const v = pick(obj[k], names);
+      if (v !== undefined) return v;
+    }
+  }
+  return undefined;
+}
+
+function toConfidence(c) {
+  if (c === undefined) return null;
+  if (typeof c === 'string') {
+    const w = c.toLowerCase().trim();
+    if (/^(very high|very_high)$/.test(w)) return 0.95;
+    if (w === 'high') return 0.9;
+    if (w === 'medium' || w === 'moderate') return 0.7;
+    if (w === 'low') return 0.4;
+    c = parseFloat(w);
+  }
+  c = Number(c);
+  if (!isFinite(c)) return null;
+  if (c > 1) c = c / 100;
+  return Math.max(0, Math.min(1, c));
+}
+
 function clean(v) {
-  const verdict = String(v.verdict || v.decision || v.recommendation || '').toLowerCase().trim();
+  const verdict = String(pick(v, ['verdict', 'decision', 'recommendation', 'action']) || '').toLowerCase().trim();
   if (!['approve', 'hold', 'reject'].includes(verdict)) return null;
-  const list = (x) => (Array.isArray(x) ? x : x ? [x] : []);
+  const list = (x) => (Array.isArray(x) ? x : x ? [x] : []).map((r) => (typeof r === 'object' ? (r.reason || r.text || JSON.stringify(r)) : r));
   return {
     verdict,
-    confidence: Math.max(0, Math.min(1, Number(v.confidence) > 1 ? Number(v.confidence) / 100 : Number(v.confidence) || 0)),
-    summary: String(v.summary || v.explanation || '').slice(0, 240),
-    reasons: list(v.reasons).slice(0, 4).map((r) => String(r).slice(0, 200)),
-    riskFlags: list(v.risk_flags || v.riskFlags).slice(0, 4).map((r) => String(r).slice(0, 120))
+    confidence: toConfidence(pick(v, ['confidence', 'confidencescore', 'confidencelevel', 'certainty', 'probability', 'score'])),
+    summary: String(pick(v, ['summary', 'explanation', 'rationale', 'reasoning', 'justification']) || '').slice(0, 240),
+    reasons: list(pick(v, ['reasons', 'keyreasons', 'factors', 'evidence', 'supportingreasons'])).slice(0, 4).map((r) => String(r).slice(0, 200)),
+    riskFlags: list(pick(v, ['riskflags', 'risks', 'flags', 'redflags'])).slice(0, 4).map((r) => String(r).slice(0, 120))
   };
 }
 
@@ -72,7 +105,7 @@ function parseVerdict(text) {
   const w = text.toLowerCase().match(/\b(approve|hold|reject)\b/);
   if (w) {
     const sentences = text.replace(/[*#`]/g, '').split(/(?<=[.!?])\s+/).filter(Boolean);
-    return { verdict: w[1], confidence: 0.5, summary: (sentences[0] || '').slice(0, 240), reasons: sentences.slice(1, 4).map((x) => x.slice(0, 200)), riskFlags: [] };
+    return { verdict: w[1], confidence: null, summary: (sentences[0] || '').slice(0, 240), reasons: sentences.slice(1, 4).map((x) => x.slice(0, 200)), riskFlags: [] };
   }
   throw new Error('SERV answer had no verdict. It said: "' + text.slice(0, 200) + '"');
 }
@@ -111,7 +144,7 @@ async function review(state, item) {
   const started = Date.now();
   const messages = [
     { role: 'system', content: SYSTEM_PROMPT },
-    { role: 'user', content: 'Review this decision and answer with the JSON object only:\n' + JSON.stringify(caseFor(state, item), null, 2) }
+    { role: 'user', content: 'Review this decision. Answer with ONLY this JSON object, using exactly these keys: verdict, confidence (a number from 0 to 1), summary, reasons, risk_flags.\n' + JSON.stringify(caseFor(state, item), null, 2) }
   ];
   try {
     let data;

@@ -132,7 +132,7 @@
     if (r.status === 'running') return '<div class="serv-box running"><span class="serv-tag">SERV Reasoning</span> Reviewing this decision\u2026</div>';
     if (r.status === 'error') return '<div class="serv-box"><span class="serv-tag">SERV Reasoning</span> Review unavailable. Guardrails still apply.</div>';
     var label = { approve: 'Recommends approve', hold: 'Recommends hold', reject: 'Recommends reject' }[r.verdict];
-    return '<div class="serv-box v-' + r.verdict + '"><div class="serv-head"><span class="serv-tag">SERV Reasoning</span><strong>' + label + '</strong><span class="serv-conf">' + Math.round(r.confidence * 100) + '% confidence</span></div>' +
+    return '<div class="serv-box v-' + r.verdict + '"><div class="serv-head"><span class="serv-tag">SERV Reasoning</span><strong>' + label + '</strong><span class="serv-conf">' + (r.confidence == null ? 'no confidence given' : Math.round(r.confidence * 100) + '% confidence') + '</span></div>' +
       (r.summary ? '<div class="serv-sum">' + esc(r.summary) + '</div>' : '') +
       (r.reasons.length ? '<ul>' + r.reasons.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') +
       (r.riskFlags && r.riskFlags.length ? '<div class="serv-flags">' + r.riskFlags.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('') + '</div>' : '') +

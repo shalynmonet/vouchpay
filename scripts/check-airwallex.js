@@ -20,7 +20,7 @@ async function checkServ() {
   console.log('\n  Checking SERV Reasoning (' + serv.model + ') ...');
   try {
     const r = await serv.review(require('../src/engine').createInitialState(), { type: 'payout', title: 'Test payout', amount: 250, status: 'pending', reasoning: 'Connection test', creatorId: 'cr2', tierName: 'Bronze', tierViews: 50000 });
-    console.log('  SERV OK: ' + r.verdict + ' (' + Math.round(r.confidence * 100) + '%, ' + (r.ms / 1000).toFixed(1) + 's)');
+    console.log('  SERV OK: ' + r.verdict + ' (' + (r.confidence == null ? 'no confidence' : Math.round(r.confidence * 100) + '%') + ', ' + (r.ms / 1000).toFixed(1) + 's)');
   } catch (e) {
     console.log('  SERV failed: ' + e.message);
   }

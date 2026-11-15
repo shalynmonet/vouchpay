@@ -43,12 +43,12 @@ async function runReviews() {
         Engine.addAudit(s, {
           actor: 'serv', type: 'serv', ref: item.id, amount: item.amount,
           title: 'SERV review: ' + label + ' \u00b7 ' + item.title,
-          detail: (r.summary ? r.summary + ' ' : '') + r.reasons.map((x) => x.replace(/\.?\s*$/, '.')).join(' ') + ' (' + Math.round(r.confidence * 100) + '% confidence, ' + r.model + ', ' + (r.ms / 1000).toFixed(1) + 's)'
+          detail: (r.summary ? r.summary + ' ' : '') + r.reasons.map((x) => x.replace(/\.?\s*$/, '.')).join(' ') + ' (' + (r.confidence == null ? 'no confidence given' : Math.round(r.confidence * 100) + '% confidence') + ', ' + r.model + ', ' + (r.ms / 1000).toFixed(1) + 's)'
         });
         // SERV-earned autonomy: small, clean bonuses pay out without waiting for a human
         const p = s.policy;
         if (item.type === 'payout' && item.status === 'pending' && r.verdict === 'approve' &&
-            p.autoPayMax > 0 && item.amount <= p.autoPayMax && r.confidence >= p.autoPayMinConfidence) {
+            p.autoPayMax > 0 && item.amount <= p.autoPayMax && r.confidence != null && r.confidence >= p.autoPayMinConfidence) {
           Engine.addAudit(s, { actor: 'agent', type: 'auto', ref: item.id, amount: item.amount, title: 'Auto-paying ' + item.creatorName + ' $' + item.amount,
             detail: 'SERV approved at ' + Math.round(r.confidence * 100) + '% confidence (needs ' + Math.round(p.autoPayMinConfidence * 100) + '%) and the bonus is within the $' + p.autoPayMax + ' auto-pay limit. Larger or flagged payouts still wait for a human.' });
           item.autoPaid = true;
